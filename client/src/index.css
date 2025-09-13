@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+/* Optional: Custom font import */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Custom scrollbar for mobile */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 2px;
+}
+
+/* Smooth transitions for better UX */
+* {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Mobile-first responsive design */
+html {
+  font-size: 16px;
+}
+
+@media (max-width: 375px) {
+  html {
+    font-size: 14px;
+  }
+}
