@@ -1,5 +1,8 @@
 import { BrowserRouter } from "react-router-dom";
 import AllRoutes from "./routes/AllRoutes";
+import Code from './components/code';
+import SehatSaathiDashboard from './components/PatientDash';
+import FooterDemo from './components/PatientFooter';
 
 function App() {
   return (
@@ -7,6 +10,8 @@ function App() {
       <BrowserRouter>
         <AllRoutes />
       </BrowserRouter>
+      {/* <SehatSaathiDashboard /> */}
+      <Code/>
     </>
   );
 }
