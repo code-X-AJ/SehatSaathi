@@ -1,0 +1,9 @@
+version: "3.8"
+services:
+  sehat-frontend:
+    build: ./client
+    image: dockninjadev/sehatSaathi-frontend:latest
+    container_name: sehat-frontend
+    restart: unless-stopped
+    ports:
+      - "10020:80"   # Host:Container (maps container 80 to server 10010)
