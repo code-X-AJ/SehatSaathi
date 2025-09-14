@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Package, QrCode, Search, Plus, Edit, Calendar, Phone, MapPin, Mail, Camera, CheckCircle, AlertCircle, Clock, Menu, X } from 'lucide-react';
+import { Html5QrcodeScanner } from 'html5-qrcode';
+
 
 const PharmacyDashboard = () => {
     const [activeTab, setActiveTab] = useState('inventory');
@@ -8,6 +10,66 @@ const PharmacyDashboard = () => {
     const [scannedData, setScannedData] = useState(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [cameraActive, setCameraActive] = useState(false);
+
+    // Add this style tag to your component or in a CSS file:
+    const scannerStyles = `
+    #qr-reader video {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+    }
+    #qr-reader {
+        width: 100% !important;
+        height: 100% !important;
+    }
+`;
+
+    // Add this inside your component:
+    useEffect(() => {
+        const style = document.createElement('style');
+        style.textContent = scannerStyles;
+        document.head.appendChild(style);
+
+        return () => {
+            document.head.removeChild(style);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (cameraActive) {
+            // Request camera permissions explicitly
+            navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: "user" // Use back camera if available
+                }
+            }).then(() => {
+                const scanner = new Html5QrcodeScanner("qr-reader", {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0,
+                    disableFlip: false,
+                    verbose: false
+                });
+
+                scanner.render(
+                    () => {
+                        setScannedData(samplePrescription);
+                        setCameraActive(false);
+                        scanner.clear();
+                    },
+                    () => {
+                        // Handle errors silently
+                    }
+                );
+
+                return () => scanner.clear();
+            }).catch((err) => {
+                console.error("Camera permission denied:", err);
+                alert("Camera permission is required to scan QR codes. Please allow camera access and try again.");
+                setCameraActive(false);
+            });
+        }
+    }, [cameraActive]);
 
     // Sample inventory data
     const [inventory, setInventory] = useState([
@@ -65,9 +127,6 @@ const PharmacyDashboard = () => {
         setShowAddMedicine(false);
     };
 
-    const handleQRScan = () => {
-        setScannedData(samplePrescription);
-    };
 
     const handleTabChange = (tab) => {
         setActiveTab(tab);
@@ -146,6 +205,73 @@ const PharmacyDashboard = () => {
             </div>
         </>
     );
+
+    // Scanner Tab Component
+    const ScannerTab = () => {
+        const handleQRScan = () => {
+            setCameraActive(true);
+            const scanner = new Html5QrcodeScanner('qr-reader', {
+                qrbox: {
+                    width: 250,
+                    height: 250,
+                },
+                fps: 5,
+            });
+
+            scanner.render(success, error);
+
+            function success(result) {
+                setCameraActive(false);
+                setScannedData(result);
+                scanner.clear();
+            }
+
+            function error(err) {
+                console.warn(err);
+            }
+        };
+
+        const stopCamera = () => {
+            const scanner = document.getElementById('qr-reader');
+            if (scanner) {
+                scanner.innerHTML = '';
+                setCameraActive(false);
+            }
+        };
+
+        return (
+            <div className="p-6">
+                <style>{scannerStyles}</style>
+                <div className="max-w-md mx-auto">
+                    <div className="flex justify-between mb-4">
+                        {!cameraActive && (
+                            <button
+                                onClick={handleQRScan}
+                                className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
+                            >
+                                Start Camera
+                            </button>
+                        )}
+                        {cameraActive && (
+                            <button
+                                onClick={stopCamera}
+                                className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700"
+                            >
+                                Stop Camera
+                            </button>
+                        )}
+                    </div>
+                    <div id="qr-reader" className="mt-4 rounded-lg overflow-hidden"></div>
+                    {scannedData && (
+                        <div className="mt-4 p-4 bg-green-50 rounded-lg">
+                            <h3 className="font-bold text-green-800">Scanned Result:</h3>
+                            <p className="text-green-700">{scannedData}</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
 
     return (
         <div className="flex h-screen bg-gray-50 overflow-hidden">
@@ -459,16 +585,17 @@ const PharmacyDashboard = () => {
                                     <div className="bg-gray-50 rounded-lg p-6 sm:p-8 text-center mb-6">
                                         <div className="w-48 h-48 sm:w-64 sm:h-64 bg-white rounded-lg mx-auto mb-4 flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden relative">
                                             {cameraActive ? (
-                                                <video
-                                                    id="qr-video"
-                                                    className="w-full h-full object-cover rounded-lg"
-                                                    autoPlay
-                                                    playsInline
-                                                    muted
-                                                />
+                                                <div id="qr-reader" style={{
+                                                    width: "100%",
+                                                    height: "100%",
+                                                    display: "flex",
+                                                    justifyContent: "center",
+                                                    alignItems: "center"
+                                                }}></div>
                                             ) : (
                                                 <Camera className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400" />
                                             )}
+
                                             {cameraActive && (
                                                 <div className="absolute inset-0 border-4 border-blue-500 rounded-lg animate-pulse">
                                                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 border-2 border-red-500 bg-transparent"></div>
@@ -479,10 +606,10 @@ const PharmacyDashboard = () => {
                                             {cameraActive ? 'Hold QR code in front of camera' : 'Position the QR code within the frame'}
                                         </p>
                                         <button
-                                            onClick={handleQRScan}
+                                            onClick={cameraActive ? () => setCameraActive(false) : () => setCameraActive(true)}
                                             className={`w-full sm:w-auto px-6 py-3 rounded-lg transition-colors ${cameraActive
-                                                    ? 'bg-red-600 hover:bg-red-700 text-white'
-                                                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                                ? 'bg-red-600 hover:bg-red-700 text-white'
+                                                : 'bg-blue-600 hover:bg-blue-700 text-white'
                                                 }`}
                                         >
                                             {cameraActive ? 'Stop Camera' : 'Start Camera'}
