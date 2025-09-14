@@ -1,18 +1,14 @@
-import Code from './components/code';
-import SehatSaathiDashboard from './components/PatientDash';
-import FooterDemo from './components/PatientFooter';
+import { BrowserRouter } from "react-router-dom";
+import AllRoutes from "./routes/AllRoutes";
 
 function App() {
-
   return (
     <>
-      {/* <SehatSaathiDashboard /> */}
-      <Code/>
+      <BrowserRouter>
+        <AllRoutes />
+      </BrowserRouter>
     </>
-  )
+  );
 }
 
-export default App
-
-
-
+export default App;
